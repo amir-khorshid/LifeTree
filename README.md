@@ -1,43 +1,116 @@
-# LifeTree v0.5 — Expandable branches
+# 🌳 LifeTree
 
-A drop-in update for your existing LifeTree v0.4 Vite + React + TypeScript project.
-**Keep `@xyflow/react@12.10.2`.** No new packages required.
+**An interactive real-life skill tree inspired by Path of Exile.**
 
-## Install
+LifeTree is a web application that allows users to visualize, organize, and track their real-world skills through a massive, interconnected skill tree.
 
-1. Back up your current `src/` folder.
-2. Extract this archive and copy its three `src/` files into your **existing** `life-tree/src/` folder, replacing the existing files.
-3. Keep your existing `package.json`, `src/main.tsx`, and other project files.
-4. Save; Vite should hot reload automatically. Otherwise run `npm run dev`.
+Instead of tracking traditional RPG abilities, LifeTree focuses on skills that can be developed in everyday life, including engineering, programming, fitness, communication, creativity, survival, and much more.
 
-## What's new
+The goal is to create a visual representation of personal growth, where skills develop into increasingly specialized branches over time.
 
-- A +/- button on expandable category and branch nodes.
-- The selected skill panel also offers Collapse / Expand when applicable.
-- **Collapse regions** hides all branches of the six major life-skill regions, leaving the central node and region nodes visible.
-- **Expand all** shows every node, while **Fit visible** centers the current visible layout.
-- **View all** expands everything and fits the full tree.
-- Search still finds skills hidden inside collapsed branches, automatically opens their ancestor branches, and zooms to the result.
-- Collapsed/expanded branches persist between page refreshes. Skill progress remains untouched.
-- Hidden paths and decorative links are hidden along with their node endpoints.
+## ✨ Features
 
-## Test
+### 🌐 Interactive Skill Tree
+- Radial skill tree inspired by Path of Exile
+- Interconnected skills and specializations
+- Zooming, panning, and smooth navigation
+- Color-coded skill progression
+- Expandable and collapsible skill branches
 
-1. Click **Collapse regions**, then **Fit visible**: only YOU and six region nodes should be visible.
-2. Click the **+** button on **Engineering**: its subskills should reappear.
-3. Click **-** on **Electronics**: Microcontrollers and Circuit Design should disappear, without deleting their statuses.
-4. Search **Microcontrollers**: the Engineering/Electronics ancestors should open and the camera should focus on Microcontrollers.
-5. Change its progress to Learning, refresh, and check that its status remains Learning.
-6. Refresh after collapsing a branch: the collapsed state should remain saved.
-7. Click **View all** to expand and reframe the entire tree.
+### 📈 Skill Progression
+Track your experience with each skill using five progression states:
 
-## Data compatibility
+| Status | Description |
+|---|---|
+| Unexplored | A skill you haven't started learning |
+| Learning | Currently developing the skill |
+| Practiced | Have some experience with the skill |
+| Proficient | Can perform the skill independently |
+| Mastered | Have developed a high level of expertise |
 
-- Identical skill IDs and data as v0.4 (43 total nodes; 42 skill/category nodes plus YOU).
-- Uses **`lifetree-progress-v1`** for existing status values (unchanged).
-- New separate key **`lifetree-collapsed-v1`** for branch visibility.
-- Everything stays in the same browser's localStorage; this does not provide cloud backups or syncing.
+### 🔎 Search and Navigation
+- Search for specific skills
+- Navigate directly to a selected skill
+- Automatically expand hidden branches when searching
+- Fit the visible tree to the screen
 
-## Technical note
+### 💾 Progress Saving
+- Automatically saves skill progression
+- Remembers expanded and collapsed branches
+- Uses browser local storage
+- No account or internet connection required after the app is loaded
 
-Uses React Flow nodes' and edges' `hidden` properties and derives hidden descendants from each skill's `parent` relationship. The visibility toggle does **not** remove nodes from the skill data and does **not** modify progression values.
+## 🛠️ Built With
+
+- **React** — User interface
+- **TypeScript** — Application logic
+- **React Flow** — Interactive skill tree visualization
+- **Vite** — Development and build tooling
+- **CSS** — Custom styling and animations
+- **LocalStorage** — Local progress persistence
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Install Node.js and npm.
+
+### Installation
+
+1. Clone the repository:
+
+   `git clone https://github.com/YOUR_USERNAME/LifeTree.git`
+
+2. Enter the project directory:
+
+   `cd LifeTree`
+
+3. Install dependencies:
+
+   `npm install`
+
+4. Start the development server:
+
+   `npm run dev`
+
+5. Open the local address displayed in your terminal, usually `http://localhost:5173/`.
+
+### Production Build
+
+Run `npm run build` to create a production-ready build.
+
+## 🗺️ Development Roadmap
+
+- [x] v0.1 — Initial interactive skill tree
+- [x] v0.2 — Circular nodes and skill progression
+- [x] v0.3 — Radial layout and expanded skill categories
+- [x] v0.4 — Skill search and navigation
+- [x] v0.5 — Expandable and collapsible branches
+- [ ] v0.6 — Expanded skill library
+- [ ] Improved skill connections and visual layout
+- [ ] Custom skill creation
+- [ ] Skill notes and accomplishments
+- [ ] Progress statistics and visualization
+- [ ] Import and export saved progress
+- [ ] Cloud synchronization and user accounts
+- [ ] Mobile-friendly interface
+
+## 🎯 Project Vision
+
+LifeTree aims to become a comprehensive, interactive map of real-world abilities.
+
+The long-term vision includes hundreds of major skills and thousands of specializations across nearly every aspect of life.
+
+Unlike traditional habit trackers, LifeTree focuses on **visualizing knowledge, experience, and mastery** rather than daily streaks or repetitive tasks.
+
+Users should be able to explore the tree, discover new areas of interest, and see how their abilities connect and develop over time.
+
+## 📌 Current Status
+
+**Version:** 0.5 — Early Development
+
+LifeTree is currently a personal project and an evolving prototype. Features, skill categories, and visual design will continue to change as development progresses.
+
+## 📄 Disclaimer
+
+LifeTree is an independent project inspired by RPG skill tree mechanics. It is not affiliated with or endorsed by Grinding Gear Games or Path of Exile.
