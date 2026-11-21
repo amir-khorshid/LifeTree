@@ -329,3 +329,12 @@ body {
   font-weight: 400;
   font-size: 11px;
 }
+
+/* v0.6: expanded 12-region library. Avoid the legend covering the search box. */
+.header { max-width: 490px; }
+.region-legend { max-width: 480px; }
+.skill-node { isolation: isolate; }
+@media (max-width: 760px) {
+  .region-legend { display: none; }
+  .header { max-width: 280px; }
+}

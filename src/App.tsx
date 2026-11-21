@@ -342,7 +342,7 @@ export default function App() {
         colorMode="dark"
         fitView
         fitViewOptions={{ padding: 0.12, maxZoom: 0.85 }}
-        minZoom={0.2}
+        minZoom={0.04}
         maxZoom={2.5}
         nodesDraggable={false}
         nodesConnectable={false}
@@ -365,9 +365,9 @@ export default function App() {
       </ReactFlow>
 
       <header className="header">
-        <h1>LIFETREE <span>v0.5</span></h1>
+        <h1>LIFETREE <span>v0.6</span></h1>
         <p>{trackedCount} / {skills.length - 1} skills tracked</p>
-        <p className="hint">Scroll to zoom · Drag to explore · Use ± to fold branches</p>
+        <p className="hint">12 regions · Scroll to zoom · Drag to explore · Use ± to fold branches</p>
 
         <div className="search-area">
           <div className="search-row">
