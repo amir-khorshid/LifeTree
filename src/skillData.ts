@@ -1108,17 +1108,29 @@ export const regions: Region[] =
   }
 ];
 
-const point = (degrees: number, radius: number) => {
+// v0.7: compact, staggered constellation layout.
+// Coordinates are in React Flow canvas units. The outer radius is now ~1,340
+// instead of 4,200. Nearby branches form short links like an RPG skill tree.
+// Each region is a 30-degree wedge. The middle branch is offset radially so
+// categories, branches, and labels have room without overlapping adjacent wedges.
+const point = (degrees: number, radius: number, tangent = 0) => {
   const radians = degrees * Math.PI / 180;
-  return { x: Math.cos(radians) * radius, y: Math.sin(radians) * radius };
+  const c = Math.cos(radians);
+  const s = Math.sin(radians);
+  return { x: c * radius - s * tangent, y: s * radius + c * tangent };
 };
 
 export const skills: Skill[] = [
   { id: 'you', label: 'YOU', icon: '✦', kind: 'root', color: '#c4b5fd', x: 0, y: 0 },
 ];
 
-// Dashed links indicate related skills, not locked prerequisites.
+// Related groups are connected by subtle dotted arcs, not prerequisites.
 export const ringLinks: { source: string; target: string; color: string }[] = [];
+
+// Display links connect a specialization to the next skill in its own cluster.
+// The real parent metadata remains unchanged, so saved progress, searching,
+// ancestry and folding continue to use the same skill relationships.
+export const displayLinks: { source: string; target: string }[] = [];
 
 for (const region of regions) {
   skills.push({
@@ -1128,12 +1140,14 @@ for (const region of regions) {
     kind: 'category',
     color: region.color,
     parent: 'you',
-    ...point(region.angle, 460),
+    ...point(region.angle, 350),
   });
+  displayLinks.push({ source: 'you', target: region.id });
 
-  const branchStep = 10;
   for (const [branchIndex, branch] of region.branches.entries()) {
-    const branchAngle = region.angle + (branchIndex - 1) * branchStep;
+    const outerBranch = branchIndex !== 1;
+    const branchRadial = outerBranch ? 580 : 685;
+    const branchTangent = (branchIndex - 1) * 90;
     skills.push({
       id: branch.id,
       label: branch.label,
@@ -1141,31 +1155,33 @@ for (const region of regions) {
       kind: 'skill',
       color: region.color,
       parent: region.id,
-      ...point(branchAngle, 1660),
+      ...point(region.angle, branchRadial, branchTangent),
     });
+    displayLinks.push({ source: region.id, target: branch.id });
 
+    let previousNodeId = branch.id;
     for (const [leafIndex, leaf] of branch.leaves.entries()) {
-      const leafAngle = branchAngle + (leafIndex - 1.5) * 2.5;
+      const radius = (outerBranch ? 810 : 875) + leafIndex * 155;
+      const tangent = (branchIndex - 1) * 135 + (leafIndex % 2 === 0 ? -7 : 7);
       skills.push({
         id: leaf.id,
         label: leaf.label,
         icon: leaf.icon,
         kind: 'skill',
         color: region.color,
-        parent: branch.id,
-        ...point(leafAngle, 4200),
+        parent: branch.id, // important: unchanged hierarchy, not a prerequisite chain
+        ...point(region.angle, radius, tangent),
       });
-      if (leafIndex > 0) ringLinks.push({
-        source: branch.leaves[leafIndex - 1].id,
-        target: leaf.id,
+      displayLinks.push({ source: previousNodeId, target: leaf.id });
+      previousNodeId = leaf.id;
+    }
+
+    if (branchIndex > 0) {
+      ringLinks.push({
+        source: region.branches[branchIndex - 1].id,
+        target: branch.id,
         color: region.color,
       });
     }
-
-    if (branchIndex > 0) ringLinks.push({
-      source: region.branches[branchIndex - 1].id,
-      target: branch.id,
-      color: region.color,
-    });
   }
 }

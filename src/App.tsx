@@ -14,7 +14,7 @@ import {
   type NodeProps,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import { regions, ringLinks, skills, type Skill, type SkillKind, type Status } from './skillData';
+import { displayLinks, regions, ringLinks, skills, type Skill, type SkillKind, type Status } from './skillData';
 import '@xyflow/react/dist/style.css';
 
 // Keep the v0.2 / v0.3 storage key so existing progress stays intact.
@@ -169,6 +169,7 @@ export default function App() {
     }
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [focusRegionId, setFocusRegionId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeResult, setActiveResult] = useState(0);
@@ -192,9 +193,14 @@ export default function App() {
 
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds]);
   const hiddenIds = useMemo(() => new Set(
-    skills.filter((skill) => getAncestors(skill.id).some((id) => collapsed.has(id)))
-      .map((skill) => skill.id)
-  ), [collapsed]);
+    skills.filter((skill) => {
+      const ancestors = getAncestors(skill.id);
+      const folded = ancestors.some((id) => collapsed.has(id));
+      const outsideFocus = focusRegionId !== null &&
+        skill.id !== focusRegionId && !ancestors.includes(focusRegionId);
+      return folded || outsideFocus;
+    }).map((skill) => skill.id)
+  ), [collapsed, focusRegionId]);
 
   const toggleBranch = useCallback((id: string) => {
     if (!collapsibleIds.has(id)) return;
@@ -228,16 +234,16 @@ export default function App() {
   })), [progress, selectedId, collapsed, hiddenIds, toggleBranch]);
 
   const edges = useMemo<Edge[]>(() => [
-    ...skills.filter((skill) => skill.parent).map((skill): Edge => {
-      const status = progress[skill.id] ?? 'unexplored';
+    ...displayLinks.map((link): Edge => {
+      const status = progress[link.target] ?? 'unexplored';
       return {
-        id: `path-${skill.id}`,
-        source: skill.parent!,
-        target: skill.id,
+        id: `path-${link.target}`,
+        source: link.source,
+        target: link.target,
         type: 'straight',
-        hidden: hiddenIds.has(skill.id) || hiddenIds.has(skill.parent!),
+        hidden: hiddenIds.has(link.source) || hiddenIds.has(link.target),
         style: {
-          stroke: status === 'unexplored' ? '#41506b' : statusColor[status],
+          stroke: status === 'unexplored' ? '#465875' : statusColor[status],
           strokeWidth: status === 'unexplored' ? 2 : 3,
           opacity: status === 'unexplored' ? 0.8 : 1,
         },
@@ -251,9 +257,9 @@ export default function App() {
       hidden: hiddenIds.has(link.source) || hiddenIds.has(link.target),
       style: {
         stroke: link.color,
-        strokeWidth: 1.6,
-        strokeDasharray: '5 7',
-        opacity: 0.45,
+        strokeWidth: 1.4,
+        strokeDasharray: '4 7',
+        opacity: 0.3,
       },
     })),
   ], [progress, hiddenIds]);
@@ -289,6 +295,7 @@ export default function App() {
   function focusSkill(skill: Skill) {
     // Search also finds hidden skills. Reveal their ancestors before navigating.
     const ancestors = new Set(getAncestors(skill.id));
+    setFocusRegionId(null);
     setCollapsedIds((current) => current.filter((id) => !ancestors.has(id)));
     setSelectedId(skill.id);
     setSearchTerm('');
@@ -299,6 +306,7 @@ export default function App() {
   }
 
   function resetView() {
+    setFocusRegionId(null);
     setCollapsedIds([]);
     setSelectedId(null);
     setSearchTerm('');
@@ -311,6 +319,26 @@ export default function App() {
 
   function fitVisible() {
     void flowRef.current?.fitView({ padding: 0.15, maxZoom: 1.15, duration: 650 });
+  }
+
+  function focusRegion(skill: Skill) {
+    let current: Skill | undefined = skill;
+    while (current && current.parent && current.parent !== 'you') {
+      current = skillsById.get(current.parent);
+    }
+    if (!current || current.id === 'you') return;
+    setFocusRegionId(current.id);
+    setCollapsedIds((ids) => ids.filter((id) => id !== current!.id));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      void flowRef.current?.fitView({ padding: 0.2, maxZoom: 1.1, duration: 650 });
+    }));
+  }
+
+  function showAllRegions() {
+    setFocusRegionId(null);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      void flowRef.current?.fitView({ padding: 0.16, maxZoom: 0.9, duration: 650 });
+    }));
   }
 
   function handleSearchKeys(event: KeyboardEvent<HTMLInputElement>) {
@@ -341,8 +369,8 @@ export default function App() {
         nodeOrigin={[0.5, 0.5]}
         colorMode="dark"
         fitView
-        fitViewOptions={{ padding: 0.12, maxZoom: 0.85 }}
-        minZoom={0.04}
+        fitViewOptions={{ padding: 0.16, maxZoom: 0.9 }}
+        minZoom={0.14}
         maxZoom={2.5}
         nodesDraggable={false}
         nodesConnectable={false}
@@ -365,9 +393,10 @@ export default function App() {
       </ReactFlow>
 
       <header className="header">
-        <h1>LIFETREE <span>v0.6</span></h1>
+        <h1>LIFETREE <span>v0.7</span></h1>
         <p>{trackedCount} / {skills.length - 1} skills tracked</p>
-        <p className="hint">12 regions · Scroll to zoom · Drag to explore · Use ± to fold branches</p>
+        <p className="hint">Compact constellations · Scroll to zoom · Drag to explore</p>
+        <p className="hint">Lines group related skills; they are not prerequisites.</p>
 
         <div className="search-area">
           <div className="search-row">
@@ -400,8 +429,13 @@ export default function App() {
             <button type="button" onClick={fitVisible}>
               Fit visible
             </button>
+            {focusRegionId && (
+              <button type="button" onClick={showAllRegions}>
+                Show all regions
+              </button>
+            )}
           </div>
-          <p className="visible-count">{visibleCount} of {skills.length - 1} skill nodes visible</p>
+          <p className="visible-count">{visibleCount} of {skills.length - 1} skill nodes visible{focusRegionId ? ' · Focus mode' : ''}</p>
 
           {searchOpen && searchTerm.trim() && (
             <div className="search-results" role="listbox" aria-label="Matching skills">
@@ -459,6 +493,13 @@ export default function App() {
               <small>{getDescendantCount(selected.id)} descendant skills</small>
             </button>
           )}
+          <button
+            type="button"
+            className="panel-focus-button"
+            onClick={() => focusRegion(selected)}
+          >
+            ◎ Focus this region
+          </button>
           <p className="panel-subtitle">How far along are you?</p>
           <div className="status-options">
             {statusOptions.map((status) => (
